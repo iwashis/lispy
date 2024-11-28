@@ -14,22 +14,15 @@ lexeme :: Parser a -> Parser a
 lexeme p = p <* maybeSpaces
 
 -- Parser for a double value
+-- -- Parser for a double value
 doubleParser :: Parser Double
 doubleParser = do
-    -- Parse minus sign if it appears
-    minusPart <- option "" $ do
-        _ <- char '-'
-        return "-"
-    -- Parse the integer part (e.g., "123")
-    integerPart <- many1 digit
-    -- Optionally parse the fractional part (e.g., ".456")
-    fractionalPart <- option "" $ do
-        _ <- char '.' -- Match the decimal point
-        digits <- many1 digit
-        return $ '.' : digits
-    -- Combine the parts and convert to Double
-    let numberString = minusPart ++ integerPart ++ fractionalPart
-    return (read numberString :: Double)
+    -- Parse an optional minus sign, integer part, and optional fractional part
+    numberString <- (++) <$> option "" (string "-")
+                         <*> ((++) <$> many1 digit
+                                   <*> option "" (char '.' >> many1 digit))
+    -- Convert the parsed string to Double
+    return (read numberString)
 
 keywordsParser :: [String] -> Parser String
 keywordsParser symbols = asum $ map tryKeyword symbols
